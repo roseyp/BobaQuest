@@ -47,14 +47,14 @@
 #define keyPosY 8
 #define doorPosX 34
 #define doorPosY 6
-#define johnTopX 140
-#define johnBottomX 148
-#define johnTopY 75
-#define johnBottomY 91
+UBYTE johnTopX =140;
+UBYTE johnBottomX =148;
+UBYTE johnTopY =75;
+UBYTE johnBottomY =91;
 
 
 
-
+void checkcollisions();
 void GotoBossFight();
 void init();
 void updateCharacter();
@@ -70,6 +70,7 @@ UINT8 randomBkgTiles[20];
 int i = 0;
 int x = 75;
 int y = 75;
+UBYTE n = 0;
 
 int tileposX =0;
 int tileposY = 0;
@@ -177,8 +178,10 @@ void main()
         wait_vbl_done();
         if(bossfight==1){
             SPRITES_8x16;
+            enable_interrupts();
             updateboss();
             checkinputboss();
+            checkcollisions();
         }
         if(talking==0 && bossfight==0){ // main graphics "renderer"
         updateCharacter();
@@ -195,132 +198,188 @@ void main()
         
     }
 }
-
-
-void updateboss(){
-
-    
-            if(shotsfired==3){
-                startedgame=0;
-                credits=1;
-                scroll_bkg(0,0);
-                move_bkg(0,0);
-            }
-             // load in character
-             if(loadedjohn==0){
-                 SHOW_WIN;
-                 move_bkg(0,0);
-                 set_sprite_tile(11,0x0E);
-             set_sprite_tile(12,0x10);
-             move_sprite(11,johnTopX,johnTopY);
-             move_sprite(12,johnBottomX,johnTopY);
-             set_sprite_tile(13,18);
-             set_sprite_tile(14,20);
-             move_sprite(13,johnTopX,johnBottomY);
-             move_sprite(14,johnBottomX,johnBottomY);
-             set_bkg_tiles(0,0,20,20,blankScreen); // load in blank tiles
-             set_win_tiles(1,1,perishWidth,perishHeight, perish);
-             set_bkg_data(0xA1, 7, starstiles);
-             
-		     set_bkg_tiles(0,0,starmapWidth,starmapHeight,starmap);	
-			 
-             talking = 1;
-                    delay(1500);
-             talking = 0;          
-
-             loadedjohn=1;
-             }
-            scroll_bkg(1,0);
-            HIDE_WIN;
-            // mailicon
-            // set_sprite_tile(6,0x20);
-            // set_sprite_tile(7,0x22); computer
-            // set_sprite_tile(8,0x24);
-
-            // if ((x > (badguy_x - 10) && x < (badguy_x + 10) && y > (badguy_y - 10) && y < (badguy_y + 10)) ||
-            //     (x > (badguy_x - 10) && x < (badguy_x + 10) && y > ((badguy_y - 40) - 10) && y < ((badguy_y - 40) + 10)) ||
-            //     (x > (badguy_x - 10) && x < (badguy_x + 10) && y > ((badguy_y + 40) - 10) && y < ((badguy_y + 40) + 10)))
-            if ((player_shot_x > (140 - 10) && player_shot_x < (140 + 20)) && 
-               ((player_shot_y > ((75+16) - 10) && player_shot_y < ((75+16) + 10)))){
-                                shotsfired++;
-                                player_shot_z = 0;
-                                player_shot_x = 250;
-                                player_shot_y = 250;
-                                for(i=0; i<4; i++){
-                                wait_vbl_done();
-                                move_sprite(11,johnTopX+1,johnTopY+1);
-                                move_sprite(12,johnBottomX+1,johnTopY+1);                                
-                                move_sprite(13,johnTopX+1,johnBottomY+1);
-                                move_sprite(14,johnBottomX+1,johnBottomY+1);
-                                delay(40); 
-                                move_sprite(11,johnTopX-1,johnTopY-1);
-                                move_sprite(12,johnBottomX-1,johnTopY-1);
-                                move_sprite(13,johnTopX-1,johnBottomY-1);
-                                move_sprite(14,johnBottomX-1,johnBottomY-1);
-                                }
-               }
-            if ((x > (badguy_x - 10) && x < (badguy_x + 10)) && 
-               ((y > (badguy_y - 10) && y < (badguy_y + 10)) ||
-                (y > ((badguy_y - 40) - 10) && y < ((badguy_y - 40) + 10)) ||
-                (y > ((badguy_y + 40) - 10) && y < ((badguy_y + 40) + 10))))
-                
+void checkcollisions(){
+            if ((x > (badguy_x - 9) && x < (badguy_x + 9)) &&
+        ((y > (badguy_y - 10) && y < (badguy_y + 10)) ||
+         (y > ((badguy_y - 40) - 9) && y < ((badguy_y - 40) + 9)) ||
+         (y > ((badguy_y + 40) - 9) && y < ((badguy_y + 40) + 9)) ||
+         (y > ((badguy_y + 80) - 9) && y < ((badguy_y + 80) + 9))))
+    {
+        resetgame();
+        scroll_bkg(0, 0);
+        move_bkg(0, 0);
+    }
+    if ((player_shot_x > (johnTopX - 16) && player_shot_x < (johnTopX + 20)) &&
+        ((player_shot_y > ((johnTopY + 16) - 10) && player_shot_y < ((johnTopY + 16) + 10))))
+    {
+        shotsfired++;
+        player_shot_z = 0;
+        player_shot_x = 250;
+        player_shot_y = 250;
+        for (i = 0; i < 4; i++)
+        {
+            wait_vbl_done();
+            move_sprite(11, johnTopX + 1, johnTopY + 1);
+            move_sprite(12, johnBottomX + 1, johnTopY + 1);
+            move_sprite(13, johnTopX + 1, johnBottomY + 1);
+            move_sprite(14, johnBottomX + 1, johnBottomY + 1);
+            delay(40);
+            move_sprite(11, johnTopX - 1, johnTopY - 1);
+            move_sprite(12, johnBottomX - 1, johnTopY - 1);
+            move_sprite(13, johnTopX - 1, johnBottomY - 1);
+            move_sprite(14, johnBottomX - 1, johnBottomY - 1);
+            move_sprite(15, johnTopX - 2, johnTopY);
+            move_sprite(16, johnTopX - 4, johnTopY - 3);
+            move_sprite(15, johnTopX - 4, johnTopY + 3);
+            l = 1;
+            n = rand() / 25;
+            for (i = 0; i < 9; i++)
             {
-                resetgame();
-                scroll_bkg(0,0);
-                move_bkg(0,0);
-                
+                delay(16);
+                l++;
+                move_sprite(15, johnTopX - (n * l), johnTopY + (n * l));
+                move_sprite(16, johnTopX - (n * l), johnTopY - (n * l));
+                move_sprite(17, johnTopX - (n * l), johnTopY + (n * l) - 5);
+                move_sprite(18, johnTopX - (n * l), johnTopY - (n * l) - 5);
+                // move_sprite(15,johnTopX-2,johnTopY+2);
+                // move_sprite(16,johnTopX-4,johnTopY-5);
+                // move_sprite(15,johnTopX-4,johnTopY+5);
             }
-            move_sprite(4,badguy_x,badguy_y);
-            move_sprite(5,badguy_x+8,badguy_y);
-            move_sprite(6,badguy_x,badguy_y-40);
-            move_sprite(7,badguy_x+8,badguy_y-40);
-            move_sprite(8,badguy_x,badguy_y+40);
-            move_sprite(9,badguy_x+8,badguy_y+40);
-            // move_sprite(10,badguy_x,badguy_y+80);
-            // move_sprite(10,badguy_x+8,badguy_y+80);
-                badguy_x = badguy_x - 1;
-            if(badguy_x > 240) {
-                badguy_offset = rand();
-                
-                while(badguy_offset > 75) {
-                   badguy_offset = rand();
-                }
+            move_sprite(15, 0, 0);
+            move_sprite(16, 0, 0);
+            move_sprite(17, 0, 0);
+            move_sprite(18, 0, 0);
 
-                badguy_x = 239;
-                }
-
-              badguy_y = badguy_offset + badguy_ai[badguy_z];
-
-            badguy_z++;
-
-            move_sprite(1,x+8,y);
-            move_sprite(0,x,y);
-            move_sprite(10, player_shot_x, player_shot_y);
-
-            if(player_shot_z == 1) {
-                player_shot_x = player_shot_x + 3;
-                    if(player_shot_x > 240) {
-                        player_shot_x = 250;
-                        player_shot_y = 250;
-                        player_shot_z = 0;
-                }
-            }
-
-            
-
-            
-           // move_sprite(6,35+16,35);
-            // move_sprite(7,35+24,35); Computer
-            // move_sprite(8,35+32,35);
-
-
-            // move_sprite(2,75,75);
-            // move_sprite(3,75+8, 75);
-
-
-
-
+            move_sprite(15, 0, 0);
+        }
+    }
 }
+
+BYTE moveBoss =1;
+void updateboss()
+{
+    if (shotsfired == 7)
+    {
+        startedgame = 0;
+        credits = 1;
+        scroll_bkg(0, 0);
+        move_bkg(0, 0);
+    }
+    // load in character
+    if (loadedjohn == 0)
+    {
+        SHOW_WIN;
+        move_bkg(0, 0);
+        set_sprite_tile(11, 0x0E);
+        set_sprite_tile(12, 0x10);
+        move_sprite(11, johnTopX, johnTopY);
+        move_sprite(12, johnBottomX, johnTopY);
+        set_sprite_tile(13, 18);
+        set_sprite_tile(14, 20);
+        move_sprite(13, johnTopX, johnBottomY);
+        move_sprite(14, johnBottomX, johnBottomY);
+        set_bkg_tiles(0, 0, 20, 20, blankScreen); // load in blank tiles
+        set_win_tiles(1, 1, perishWidth, perishHeight, perish);
+        set_bkg_data(0xA1, 7, starstiles);
+
+        set_bkg_tiles(0, 0, starmapWidth, starmapHeight, starmap);
+        set_sprite_tile(15, 0xA4);
+        set_sprite_tile(16, 0xA5);
+        set_sprite_tile(17, 0xA6);
+        set_sprite_tile(18, 0xA7);
+
+        talking = 1;
+        delay(1500);
+        talking = 0;
+
+        loadedjohn = 1;
+    }
+    scroll_bkg(1, 0);
+
+    HIDE_WIN;
+    // draw boss
+    move_sprite(11, johnTopX, johnTopY);
+    move_sprite(12, johnBottomX, johnTopY);
+    move_sprite(13, johnTopX, johnBottomY);
+    move_sprite(14, johnBottomX, johnBottomY);
+
+    // move boss
+    johnTopY = johnTopY + moveBoss;
+    johnBottomY =  johnBottomY + moveBoss;
+
+    if (johnTopY >= 100)
+    {
+        moveBoss = -1;
+        // johnTopY = 149;
+        // johnBottomY = 149+16;
+    }
+    if (johnTopY <= 20)
+    {
+        moveBoss = 1;
+        // johnTopY = 51;
+        // johnBottomY = 51+16;
+    }
+    // mailicon
+    // set_sprite_tile(6,0x20);
+    // set_sprite_tile(7,0x22); computer
+    // set_sprite_tile(8,0x24);
+
+    // if ((x > (badguy_x - 10) && x < (badguy_x + 10) && y > (badguy_y - 10) && y < (badguy_y + 10)) ||
+    //     (x > (badguy_x - 10) && x < (badguy_x + 10) && y > ((badguy_y - 40) - 10) && y < ((badguy_y - 40) + 10)) ||
+    //     (x > (badguy_x - 10) && x < (badguy_x + 10) && y > ((badguy_y + 40) - 10) && y < ((badguy_y + 40) + 10)))
+    
+   
+
+    // move drones
+    move_sprite(4, badguy_x, badguy_y);
+    move_sprite(5, badguy_x + 8, badguy_y);
+    move_sprite(6, badguy_x, badguy_y - 40);
+    move_sprite(7, badguy_x + 8, badguy_y - 40);
+    move_sprite(8, badguy_x, badguy_y + 40);
+    move_sprite(9, badguy_x + 8, badguy_y + 40);
+    //  move_sprite(10,badguy_x,badguy_y+80);
+     move_sprite(20,badguy_x,badguy_y+80);
+     move_sprite(19,badguy_x+8,badguy_y+80);
+ 
+    badguy_x = badguy_x - 1;
+    if (badguy_x > 240)
+    {
+        badguy_offset = rand();
+
+        while (badguy_offset > 75)
+        {
+            badguy_offset = rand();
+        }
+
+        badguy_x = 239;
+    }
+
+    badguy_y = badguy_offset + badguy_ai[badguy_z];
+
+    badguy_z++;
+
+    move_sprite(1, x + 8, y);
+    move_sprite(0, x, y);
+    move_sprite(10, player_shot_x, player_shot_y);
+    if(joypad() & J_A) {
+        if(player_shot_z == 0) {
+            player_shot_z = 1;
+            player_shot_x = x;
+            player_shot_y = y;
+        }
+    }
+    if (player_shot_z == 1)
+    {
+        player_shot_x = player_shot_x + 3;
+        if (player_shot_x > 240)
+        {
+            player_shot_x = 250;
+            player_shot_y = 250;
+            player_shot_z = 0;
+        }
+    }
+}
+
 void resetgame(){
                 HIDE_SPRITES;
                 
@@ -358,13 +417,8 @@ void checkinputboss(){
     if(joypad() & J_DOWN) {
         if(y < 152)
             y++;
-    if(joypad() & J_A) {
-        if(player_shot_z == 0) {
-            player_shot_z = 1;
-            player_shot_x = x;
-            player_shot_y = y;
-        }
-    }
+    
+    
     
 }
 }
@@ -536,6 +590,9 @@ void init(){
             set_sprite_tile(8,0x16);
             set_sprite_tile(9,0x18);
             set_sprite_tile(10,0x26);
+            set_sprite_tile(19,0x18);
+            set_sprite_tile(20,0x16);
+            
     
     //  set_bkg_tiles(0,4,10,2,noctext2); // load in text in noctext.c
 
@@ -598,6 +655,8 @@ void updateCharacter()
                 move_sprite(12,0,0);
                 move_sprite(13,0,0);
                 move_sprite(14,0,0);
+                move_sprite(20,0,0+8);
+     move_sprite(19,0+8,0+8);
                 movedsprites=1;
     }
     // Gather input
@@ -628,7 +687,7 @@ void updateCharacter()
 
     if (joypad() & J_SELECT)
     {
-        GotoBossFight();
+         GotoBossFight(); // Debug purposes only
     }
     // if (joypad() & J_A){
 
