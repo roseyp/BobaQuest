@@ -1,6 +1,6 @@
 /*
 
- CHRISDIALOGUE.H
+ PROFINTRO.H
 
  Map Include File.
 
@@ -18,10 +18,10 @@
 
 */
 
-#define chris1Width 17
-#define chris1Height 2
-#define chris1Bank 0
+#define profintroWidth 17
+#define profintroHeight 2
+#define profintroBank 0
 
-extern unsigned char chris1[];
+extern unsigned char profintro[];
 
-/* End of CHRISDIALOGUE.H */
+/* End of PROFINTRO.H */

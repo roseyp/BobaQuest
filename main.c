@@ -18,6 +18,9 @@
 #include "Assets\noctext2.c"
 #include "Assets\perish.c"
 #include "Assets\pressstart.c"
+#include "Assets\professorellis.h"
+#include "Assets\profintro.c"
+#include "Assets\profluck.c"
 #include "Assets\question.c"
 #include "Assets\sophiedialogue.c"
 #include "Assets\starmap.c"
@@ -28,8 +31,10 @@
 #include "Assets\trees2.c"
 #include "Assets\vaporwave.h"
 #include "Assets\window.c"
+#include "Assets\coin.c"
 #include <gb/gb.h>
 #include <rand.h>
+
 // holy include batman
 // a lot tilemaps for dialogue are saved in seperate files, there is probably a better way to handle than hard coding
 // tilemaps but for quick and easy way putting tiledata as const serves well without occupying too much memory
@@ -53,6 +58,7 @@ UBYTE johnTopX = 140;
 UBYTE johnBottomX = 148;
 UBYTE johnTopY = 75;
 UBYTE johnBottomY = 91;
+UBYTE spawned =0;
 
 
 
@@ -64,6 +70,7 @@ UBYTE player_shot_x, player_shot_y, player_shot_z;
 UINT8 collision(int x, int y);
 UINT8 randomBkgTiles[20];
 UINT8 sprite_index;
+
 int bossfight = 0;
 int counter = 0;
 int credits = 0;
@@ -160,17 +167,44 @@ void main()
     {
         jenny1[i] += 1;
     }
-    for (i = 0; i < 22; i++)
+    for (i = 0; i < 34; i++)
     {
-        chris1[i] += 1;
+        // chris1[i] += 1;
     }
     for (i = 0; i < 19; i++)
     {
         boba_tilemap[i] += 0xA8;
     }
+    for (i=0; i < 32; i++){
+        professorellis_tilemap[i] += 0xBA;
+    }
     init();
     while (1)
     { // MAIN GAME LOOP
+        {
+        if (startedgame == 1 && spawned == 0){ //opening spiel by prof. ellis
+            talking = 1;
+             
+            // set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
+            set_bkg_tiles(12,8,5,8,professorellis_tilemap);
+            SHOW_WIN;
+            set_win_tiles(1, 1, profintroWidth, profintroHeight, profintro);
+            delay(4000);
+            set_win_tiles(1, 1, profintroWidth, profintroHeight, profluck);
+            delay(4000);
+            HIDE_WIN;
+            talking = 0;
+            set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
+            SHOW_SPRITES;
+            startedgame = 1;
+            set_bkg_tiles(0, 0, map_dataWidth, map_dataHeight, map_data);
+            set_sprite_data(0, 14, jenny); // load in character
+
+
+            spawned = 1;
+            
+
+        }
         if (credits == 1)
         { // end game screen
             set_bkg_tiles(0, 0, 20, 18, congratulations);
@@ -201,9 +235,11 @@ void main()
 
             displayDialogue(); // dialogue system
         }
+        
         else
         {
             render_huge_sprite(); // start screen
+        }
         }
     }
 }
@@ -492,7 +528,7 @@ void displayDialogue()
     if (tileposX > (sophiePosX - 3) && tileposX < (sophiePosX + 3) &&
         tileposY > (sophiePosY - 3) && tileposY < (sophiePosY + 3))
     {
-        if (joypad() & J_A)
+        if (joypad() & J_A && haveticket == 0)
         {
             dialogue++;
             delay(100);
@@ -547,7 +583,7 @@ void displayDialogue()
             case 1:
                 if (haveticket == 0)
                 {
-                    set_win_tiles(2, 1, chris1Width, chris1Height, chris1);
+                    set_win_tiles(1, 1, chris1Width, chris1Height, chris1);
                     delay(500);
                     SHOW_WIN;
                     talking = 1;
@@ -623,7 +659,6 @@ void displayDialogue()
 }
 void render_huge_sprite()
 {
-
     set_bkg_tiles(12, 9, 5, 8, vaporwave_tilemap);
     set_bkg_tiles(3, 4, 14, 1, bobaquest_tilemap);
     set_bkg_tiles(5, 7, 12, 1, starttext);
@@ -646,6 +681,7 @@ void init()
     initrand(DIV_REG); //initialize random
 
     SPRITES_8x8;
+    set_bkg_data(0xBA, 41, professorellis_tiledata);
     set_bkg_data(0xA8, 15, boba_tiledata);
     set_bkg_data(0x88, 15, bobaquest_tiledata);
     set_bkg_data(95, 41, vaporwave_tiledata);

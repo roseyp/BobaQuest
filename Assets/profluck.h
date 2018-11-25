@@ -1,6 +1,6 @@
 /*
 
- CHRISDIALOGUE.H
+ PROFLUCK.H
 
  Map Include File.
 
@@ -18,10 +18,10 @@
 
 */
 
-#define chris1Width 17
-#define chris1Height 2
-#define chris1Bank 0
+#define profluckWidth 17
+#define profluckHeight 2
+#define profluckBank 0
 
-extern unsigned char chris1[];
+extern unsigned char profluck[];
 
-/* End of CHRISDIALOGUE.H */
+/* End of PROFLUCK.H */
