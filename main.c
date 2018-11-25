@@ -25,6 +25,9 @@
 #include "Assets\trees2.c"
 #include "Assets\vaporwave.h"
 #include "Assets\window.c"
+#include "Assets\healthbar.c"
+#include "Assets\healthbarmap.c"
+
 #include <gb/gb.h>
 #include <rand.h>
 // holy include batman
@@ -169,10 +172,12 @@ void main()
             set_bkg_tiles(0,0,20,18,congratulations);
             set_bkg_tiles(0,6,3,6,boba_tilemap);
             HIDE_SPRITES;
+            HIDE_WIN;
             delay(25000);
             credits=0;
             resetgame();
             shotsfired=0;
+
         }
         if(startedgame==1){ // main game
         wait_vbl_done();
@@ -198,6 +203,8 @@ void main()
         
     }
 }
+BYTE playsound = 6;
+int removesound = -1;
 void checkcollisions(){
             if ((x > (badguy_x - 9) && x < (badguy_x + 9)) &&
         ((y > (badguy_y - 10) && y < (badguy_y + 10)) ||
@@ -213,6 +220,27 @@ void checkcollisions(){
         ((player_shot_y > ((johnTopY + 16) - 10) && player_shot_y < ((johnTopY + 16) + 10))))
     {
         shotsfired++;
+        NR52_REG = 0x80;
+        NR51_REG = 0x11;
+        NR50_REG = 0x77;
+
+        NR10_REG = 0x1E;
+        NR11_REG = 0x10;
+        NR12_REG = 0xF3;
+        NR13_REG = 0x00;
+        NR14_REG = 0x87;
+        for(i=0;i<12;i++){
+            NR52_REG = NR52_REG -1;
+        NR51_REG = NR51_REG-1;
+        NR50_REG = NR50_REG-1;
+
+        NR10_REG = NR10_REG-1;
+        NR11_REG = NR11_REG-1;
+        NR12_REG = NR12_REG-1;
+        NR13_REG = NR13_REG-1;
+        NR14_REG = NR14_REG-1;
+        }
+        set_win_tiles(8-shotsfired, 1, 1, 1, 0x2F); //0x2F
         player_shot_z = 0;
         player_shot_x = 250;
         player_shot_y = 250;
@@ -258,7 +286,7 @@ void checkcollisions(){
 BYTE moveBoss =1;
 void updateboss()
 {
-    if (shotsfired == 7)
+    if (shotsfired == 6)
     {
         startedgame = 0;
         credits = 1;
@@ -291,12 +319,17 @@ void updateboss()
         talking = 1;
         delay(1500);
         talking = 0;
+        set_win_tiles(0,0,20,20,blankScreen);
+        set_win_data(0xB7, 3, healthbar); 
+        move_win(50,130);           
+        SHOW_WIN;
+        set_win_tiles(1, 1, healthbarmapWidth, healthbarmapHeight, healthbarmap); //0x2F
+
 
         loadedjohn = 1;
     }
     scroll_bkg(1, 0);
 
-    HIDE_WIN;
     // draw boss
     move_sprite(11, johnTopX, johnTopY);
     move_sprite(12, johnBottomX, johnTopY);
@@ -319,6 +352,8 @@ void updateboss()
         // johnTopY = 51;
         // johnBottomY = 51+16;
     }
+            
+
     // mailicon
     // set_sprite_tile(6,0x20);
     // set_sprite_tile(7,0x22); computer
@@ -361,13 +396,28 @@ void updateboss()
     move_sprite(1, x + 8, y);
     move_sprite(0, x, y);
     move_sprite(10, player_shot_x, player_shot_y);
-    if(joypad() & J_A) {
-        if(player_shot_z == 0) {
-            player_shot_z = 1;
-            player_shot_x = x;
-            player_shot_y = y;
-        }
+    if (joypad() & J_A && player_shot_z == 0)
+    {
+
+        NR52_REG = 0x80;
+        NR51_REG = 0x11;
+        NR50_REG = 0x77;
+
+        NR10_REG = 0x1E;
+        NR11_REG = 0x10;
+        NR12_REG = 0xF3;
+        NR13_REG = 0x00;
+        NR14_REG = 0x87;
+
+        player_shot_z = 1;
+        player_shot_x = x;
+        player_shot_y = y;
+        delay(20);
     }
+    else{NR11_REG = 0x00;													// NO A BUTTON - NO SOUND
+		NR12_REG = 0x00;
+		NR13_REG = 0x00;
+		NR14_REG = 0x00;}
     if (player_shot_z == 1)
     {
         player_shot_x = player_shot_x + 3;
@@ -382,7 +432,9 @@ void updateboss()
 
 void resetgame(){
                 HIDE_SPRITES;
-                
+                HIDE_WIN;
+                move_win(7, 112);
+                shotsfired=0;
                 startedgame=0;
                 bossfight=0;
                 delay(1000);
@@ -573,7 +625,6 @@ void init(){
         NR50_REG = 0x77; // Increase the volume to its max
         initrand(DIV_REG); //initialize random
 
-    
 	
     SPRITES_8x8;
     set_bkg_data(0xA8,15,boba_tiledata);
@@ -687,7 +738,7 @@ void updateCharacter()
 
     if (joypad() & J_SELECT)
     {
-         GotoBossFight(); // Debug purposes only
+          GotoBossFight(); // Debug purposes only
     }
     // if (joypad() & J_A){
 
