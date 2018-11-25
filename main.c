@@ -1,3 +1,4 @@
+
 #include "Assets\alpha.c"
 #include "Assets\ancientevil.c"
 #include "Assets\blankscreen.c"
@@ -7,6 +8,8 @@
 #include "Assets\chrisdialogue.c"
 #include "Assets\congratulations.c"
 #include "Assets\garland.c"
+#include "Assets\healthbar.c"
+#include "Assets\healthbarmap.c"
 #include "Assets\jenny.c"
 #include "Assets\jennydialogue.c"
 #include "Assets\john.c"
@@ -25,118 +28,112 @@
 #include "Assets\trees2.c"
 #include "Assets\vaporwave.h"
 #include "Assets\window.c"
-#include "Assets\healthbar.c"
-#include "Assets\healthbarmap.c"
-
 #include <gb/gb.h>
 #include <rand.h>
 // holy include batman
 // a lot tilemaps for dialogue are saved in seperate files, there is probably a better way to handle than hard coding
 // tilemaps but for quick and easy way putting tiledata as const serves well without occupying too much memory
 
-
 // ############### a lot of  defining ahead!! ################
 
-#define MapSizeX 64
-#define SPR_WIDTH 8
-#define SPR_HEIGHT 5
-#define TOTAL_SPR SPR_WIDTH * SPR_HEIGHT
 
-#define sophiePosX 30
-#define sophiePosY 13
+#define MapSizeX 64
+#define SPR_HEIGHT 5
+#define SPR_WIDTH 8
+#define TOTAL_SPR SPR_WIDTH *SPR_HEIGHT
 #define chrisPosX 15
 #define chrisPosY 11
-#define keyPosX 45
-#define keyPosY 8
 #define doorPosX 34
 #define doorPosY 6
-UBYTE johnTopX =140;
-UBYTE johnBottomX =148;
-UBYTE johnTopY =75;
-UBYTE johnBottomY =91;
+#define keyPosX 45
+#define keyPosY 8
+#define sophiePosX 30
+#define sophiePosY 13
+UBYTE johnTopX = 140;
+UBYTE johnBottomX = 148;
+UBYTE johnTopY = 75;
+UBYTE johnBottomY = 91;
 
 
 
-void checkcollisions();
-void GotoBossFight();
-void init();
-void updateCharacter();
-void updateBkg();
-void render_huge_sprite();
-void displayDialogue();
-void checkinputboss();
-void updateboss();
+
+UBYTE badguy2_x, badguy2_y, badguy2_z, badguy2_offset;
+UBYTE badguy_x, badguy_y, badguy_z, badguy_offset;
+UBYTE n = 0;
+UBYTE player_shot_x, player_shot_y, player_shot_z;
 UINT8 collision(int x, int y);
 UINT8 randomBkgTiles[20];
-
-
+UINT8 sprite_index;
+int bossfight = 0;
+int counter = 0;
+int credits = 0;
+int currentFrame;
+int dialogue = 0;
+int framecounter;
+int garlandTalked = 0;
+int havenockey = 0;
+int haveticket = 0;
 int i = 0;
+int isMoving = 0;
+int j;
+int jennytalked = 0;
+int l = 0;
+int loadedjohn = 0;
+int movedsprites = 1;
+int scrollX = 0;
+int shotsfired = 0;
+int sophietalked = 0;
+int startedgame = 0;
+int talking = 0;
+int tileCounter = 0;
+int tileposX = 0;
+int tileposY = 0;
 int x = 75;
 int y = 75;
-UBYTE n = 0;
-
-int tileposX =0;
-int tileposY = 0;
-
-int isMoving = 0;
-int framecounter;
-int currentFrame;
-int startedgame = 0;
-int l = 0;
-int sophietalked = 0;
-int jennytalked = 0;
-int dialogue = 0;
-int talking = 0;
-int bossfight = 0;
-int haveticket = 0;
-int garlandTalked =0;
-int havenockey = 0;
-UBYTE badguy_x, badguy_y, badguy_z, badguy_offset;
-UBYTE badguy2_x, badguy2_y, badguy2_z, badguy2_offset;
-UBYTE player_shot_x, player_shot_y, player_shot_z;
-UINT8 sprite_index;
-int loadedjohn=0;
-int shotsfired=0;
-int movedsprites=1;
-int credits=0;
+void GotoBossFight();
+void checkcollisions();
+void checkinputboss();
+void displayDialogue();
+void init();
+void render_huge_sprite();
 void resetgame();
-
+void updateBkg();
+void updateCharacter();
+void updateboss();
 
 const UBYTE badguy_ai[] = {
-    32,  32,  33,  34,  35,  35,  36,  37,
-    38,  38,  39,  40,  41,  41,  42,  43,
-    44,  44,  45,  46,  46,  47,  48,  48,
-    49,  50,  50,  51,  51,  52,  53,  53,
-    54,  54,  55,  55,  56,  56,  57,  57,
-    58,  58,  58,  59,  59,  60,  60,  60,
-    61,  61,  61,  61,  62,  62,  62,  62,
-    62,  63,  63,  63,  63,  63,  63,  63,
-    63,  63,  63,  63,  63,  63,  63,  63,
-    62,  62,  62,  62,  62,  61,  61,  61,
-    61,  60,  60,  60,  59,  59,  59,  58,
-    58,  57,  57,  56,  56,  55,  55,  54,
-    54,  53,  53,  52,  52,  51,  50,  50,
-    49,  49,  48,  47,  47,  46,  45,  44,
-    44,  43,  42,  42,  41,  40,  39,  39,
-    38,  37,  36,  36,  35,  34,  33,  33,
-    32,  31,  30,  29,  29,  28,  27,  26,
-    26,  25,  24,  23,  23,  22,  21,  20,
-    20,  19,  18,  18,  17,  16,  16,  15,
-    14,  14,  13,  12,  12,  11,  11,  10,
-    9,  9,  8,  8,  7,  7,  6,  6,
-    6,  5,  5,  4,  4,  4,  3,  3,
-    3,  2,  2,  2,  1,  1,  1,  1,
-    1,  1,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    1,  1,  1,  1,  1,  1,  2,  2,
-    2,  3,  3,  3,  4,  4,  4,  5,
-    5,  5,  6,  6,  7,  7,  8,  8,
-    9,  9,  10,  11,  11,  12,  12,  13,
-    14,  14,  15,  16,  16,  17,  18,  18,
-    19,  20,  20,  21,  22,  23,  23,  24,
-    25,  26,  26,  27,  28,  29,  29,  30
-}; // Sine wave woooo
-
+    32, 32, 33, 34, 35, 35, 36, 37,
+    38, 38, 39, 40, 41, 41, 42, 43,
+    44, 44, 45, 46, 46, 47, 48, 48,
+    49, 50, 50, 51, 51, 52, 53, 53,
+    54, 54, 55, 55, 56, 56, 57, 57,
+    58, 58, 58, 59, 59, 60, 60, 60,
+    61, 61, 61, 61, 62, 62, 62, 62,
+    62, 63, 63, 63, 63, 63, 63, 63,
+    63, 63, 63, 63, 63, 63, 63, 63,
+    62, 62, 62, 62, 62, 61, 61, 61,
+    61, 60, 60, 60, 59, 59, 59, 58,
+    58, 57, 57, 56, 56, 55, 55, 54,
+    54, 53, 53, 52, 52, 51, 50, 50,
+    49, 49, 48, 47, 47, 46, 45, 44,
+    44, 43, 42, 42, 41, 40, 39, 39,
+    38, 37, 36, 36, 35, 34, 33, 33,
+    32, 31, 30, 29, 29, 28, 27, 26,
+    26, 25, 24, 23, 23, 22, 21, 20,
+    20, 19, 18, 18, 17, 16, 16, 15,
+    14, 14, 13, 12, 12, 11, 11, 10,
+    9, 9, 8, 8, 7, 7, 6, 6,
+    6, 5, 5, 4, 4, 4, 3, 3,
+    3, 2, 2, 2, 1, 1, 1, 1,
+    1, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 2, 2,
+    2, 3, 3, 3, 4, 4, 4, 5,
+    5, 5, 6, 6, 7, 7, 8, 8,
+    9, 9, 10, 11, 11, 12, 12, 13,
+    14, 14, 15, 16, 16, 17, 18, 18,
+    19, 20, 20, 21, 22, 23, 23, 24,
+    25, 26, 26, 27, 28, 29, 29, 30}; // Sine wave woooo
 
 // ################ End of defining ###################
 void main()
@@ -145,68 +142,76 @@ void main()
     enable_interrupts();
     for (i = 0; i < 40; i++)
     {
-        vaporwave_tilemap[i] += 0x5F; 
-        
+        vaporwave_tilemap[i] += 0x5F;
     }
-    for (i=0; i<14;i++){
+    for (i = 0; i < 14; i++)
+    {
         bobaquest_tilemap[i] += 0x88;
     }
-    for (i=0; i<12; i++){
+    for (i = 0; i < 12; i++)
+    {
         starttext[i] += 1;
     }
-    for (i=0; i<32; i++){
+    for (i = 0; i < 32; i++)
+    {
         sophie1[i] += 1;
     }
-    for (i=0; i<32; i++){
+    for (i = 0; i < 32; i++)
+    {
         jenny1[i] += 1;
     }
-    for (i=0; i<22; i++){
+    for (i = 0; i < 22; i++)
+    {
         chris1[i] += 1;
     }
-    for (i=0; i<19; i++){
+    for (i = 0; i < 19; i++)
+    {
         boba_tilemap[i] += 0xA8;
-    } 
+    }
     init();
-    while(1){ // MAIN GAME LOOP
-        if(credits==1){ // end game screen
-            set_bkg_tiles(0,0,20,18,congratulations);
-            set_bkg_tiles(0,6,3,6,boba_tilemap);
+    while (1)
+    { // MAIN GAME LOOP
+        if (credits == 1)
+        { // end game screen
+            set_bkg_tiles(0, 0, 20, 18, congratulations);
+            set_bkg_tiles(0, 6, 3, 6, boba_tilemap);
             HIDE_SPRITES;
             HIDE_WIN;
             delay(25000);
-            credits=0;
+            credits = 0;
             resetgame();
-            shotsfired=0;
+            shotsfired = 0;
+        }
+        if (startedgame == 1)
+        { // main game
+            wait_vbl_done();
+            if (bossfight == 1)
+            {
+                SPRITES_8x16;
+                enable_interrupts();
+                updateboss();
+                checkinputboss();
+                checkcollisions();
+            }
+            if (talking == 0 && bossfight == 0)
+            { // main graphics "renderer"
+                updateCharacter();
+                updateBkg();
+            }
 
+            displayDialogue(); // dialogue system
         }
-        if(startedgame==1){ // main game
-        wait_vbl_done();
-        if(bossfight==1){
-            SPRITES_8x16;
-            enable_interrupts();
-            updateboss();
-            checkinputboss();
-            checkcollisions();
-        }
-        if(talking==0 && bossfight==0){ // main graphics "renderer"
-        updateCharacter();
-        updateBkg();
-        }
-        
-        displayDialogue(); // dialogue system
-        
-        }
-        else{
+        else
+        {
             render_huge_sprite(); // start screen
-        
         }
-        
     }
 }
 BYTE playsound = 6;
 int removesound = -1;
-void checkcollisions(){
-            if ((x > (badguy_x - 9) && x < (badguy_x + 9)) &&
+void checkcollisions()
+{
+    if ((x > (badguy_x - 9) && x < (badguy_x + 9)) &&
         ((y > (badguy_y - 10) && y < (badguy_y + 10)) ||
          (y > ((badguy_y - 40) - 9) && y < ((badguy_y - 40) + 9)) ||
          (y > ((badguy_y + 40) - 9) && y < ((badguy_y + 40) + 9)) ||
@@ -229,18 +234,19 @@ void checkcollisions(){
         NR12_REG = 0xF3;
         NR13_REG = 0x00;
         NR14_REG = 0x87;
-        for(i=0;i<12;i++){
-            NR52_REG = NR52_REG -1;
-        NR51_REG = NR51_REG-1;
-        NR50_REG = NR50_REG-1;
+        for (i = 0; i < 12; i++)
+        {
+            NR52_REG = NR52_REG - 1;
+            NR51_REG = NR51_REG - 1;
+            NR50_REG = NR50_REG - 1;
 
-        NR10_REG = NR10_REG-1;
-        NR11_REG = NR11_REG-1;
-        NR12_REG = NR12_REG-1;
-        NR13_REG = NR13_REG-1;
-        NR14_REG = NR14_REG-1;
+            NR10_REG = NR10_REG - 1;
+            NR11_REG = NR11_REG - 1;
+            NR12_REG = NR12_REG - 1;
+            NR13_REG = NR13_REG - 1;
+            NR14_REG = NR14_REG - 1;
         }
-        set_win_tiles(8-shotsfired, 1, 1, 1, 0x2F); //0x2F
+        set_win_tiles(8 - shotsfired, 1, 1, 1, 0x2F); //0x2F
         player_shot_z = 0;
         player_shot_x = 250;
         player_shot_y = 250;
@@ -283,7 +289,7 @@ void checkcollisions(){
     }
 }
 
-BYTE moveBoss =1;
+BYTE moveBoss = 1;
 void updateboss()
 {
     if (shotsfired == 6)
@@ -319,12 +325,11 @@ void updateboss()
         talking = 1;
         delay(1500);
         talking = 0;
-        set_win_tiles(0,0,20,20,blankScreen);
-        set_win_data(0xB7, 3, healthbar); 
-        move_win(50,130);           
+        set_win_tiles(0, 0, 20, 20, blankScreen);
+        set_win_data(0xB7, 3, healthbar);
+        move_win(50, 130);
         SHOW_WIN;
         set_win_tiles(1, 1, healthbarmapWidth, healthbarmapHeight, healthbarmap); //0x2F
-
 
         loadedjohn = 1;
     }
@@ -338,7 +343,7 @@ void updateboss()
 
     // move boss
     johnTopY = johnTopY + moveBoss;
-    johnBottomY =  johnBottomY + moveBoss;
+    johnBottomY = johnBottomY + moveBoss;
 
     if (johnTopY >= 100)
     {
@@ -352,7 +357,6 @@ void updateboss()
         // johnTopY = 51;
         // johnBottomY = 51+16;
     }
-            
 
     // mailicon
     // set_sprite_tile(6,0x20);
@@ -362,8 +366,6 @@ void updateboss()
     // if ((x > (badguy_x - 10) && x < (badguy_x + 10) && y > (badguy_y - 10) && y < (badguy_y + 10)) ||
     //     (x > (badguy_x - 10) && x < (badguy_x + 10) && y > ((badguy_y - 40) - 10) && y < ((badguy_y - 40) + 10)) ||
     //     (x > (badguy_x - 10) && x < (badguy_x + 10) && y > ((badguy_y + 40) - 10) && y < ((badguy_y + 40) + 10)))
-    
-   
 
     // move drones
     move_sprite(4, badguy_x, badguy_y);
@@ -373,9 +375,9 @@ void updateboss()
     move_sprite(8, badguy_x, badguy_y + 40);
     move_sprite(9, badguy_x + 8, badguy_y + 40);
     //  move_sprite(10,badguy_x,badguy_y+80);
-     move_sprite(20,badguy_x,badguy_y+80);
-     move_sprite(19,badguy_x+8,badguy_y+80);
- 
+    move_sprite(20, badguy_x, badguy_y + 80);
+    move_sprite(19, badguy_x + 8, badguy_y + 80);
+
     badguy_x = badguy_x - 1;
     if (badguy_x > 240)
     {
@@ -414,10 +416,13 @@ void updateboss()
         player_shot_y = y;
         delay(20);
     }
-    else{NR11_REG = 0x00;													// NO A BUTTON - NO SOUND
-		NR12_REG = 0x00;
-		NR13_REG = 0x00;
-		NR14_REG = 0x00;}
+    else
+    {
+        NR11_REG = 0x00; // NO A BUTTON - NO SOUND
+        NR12_REG = 0x00;
+        NR13_REG = 0x00;
+        NR14_REG = 0x00;
+    }
     if (player_shot_z == 1)
     {
         player_shot_x = player_shot_x + 3;
@@ -430,289 +435,301 @@ void updateboss()
     }
 }
 
-void resetgame(){
-                HIDE_SPRITES;
-                HIDE_WIN;
-                move_win(7, 112);
-                shotsfired=0;
-                startedgame=0;
-                bossfight=0;
-                delay(1000);
-                init();
-                 i = 0;
-                 x = 75;
-                 y = 75;
-                 tileposX =0;
-                 tileposY = 0;
-                 isMoving = 0;
-                 startedgame = 0;
-                 l = 0;
-                 badguy_x = 0;
-                 badguy_y = 0;
-                 loadedjohn=0;
-                 movedsprites=0;
+void resetgame()
+{
+    HIDE_SPRITES;
+    HIDE_WIN;
+    move_win(7, 112);
+    shotsfired = 0;
+    startedgame = 0;
+    bossfight = 0;
+    delay(1000);
+    init();
+    i = 0;
+    x = 75;
+    y = 75;
+    tileposX = 0;
+    tileposY = 0;
+    isMoving = 0;
+    startedgame = 0;
+    l = 0;
+    badguy_x = 0;
+    badguy_y = 0;
+    loadedjohn = 0;
+    movedsprites = 0;
+
+    scrollX = 0;
+    tileCounter = 0;
+    counter = 0;
 }
-void checkinputboss(){
-    
-    if(joypad() & J_LEFT) {
-        if(x > 8)
+void checkinputboss()
+{
+
+    if (joypad() & J_LEFT)
+    {
+        if (x > 8)
             x--;
     }
-    if(joypad() & J_RIGHT) {
-        if(x < 160)
+    if (joypad() & J_RIGHT)
+    {
+        if (x < 160)
             x++;
     }
-    if(joypad() & J_UP) {
-        if(y > 16)
+    if (joypad() & J_UP)
+    {
+        if (y > 16)
             y--;
     }
-    if(joypad() & J_DOWN) {
-        if(y < 152)
+    if (joypad() & J_DOWN)
+    {
+        if (y < 152)
             y++;
-    
-    
-    
+    }
 }
-}
-void displayDialogue(){
+void displayDialogue()
+{
 
-    if (tileposX > (sophiePosX - 3) && tileposX < (sophiePosX + 3) && 
+    if (tileposX > (sophiePosX - 3) && tileposX < (sophiePosX + 3) &&
         tileposY > (sophiePosY - 3) && tileposY < (sophiePosY + 3))
     {
-        if(joypad() & J_A)
+        if (joypad() & J_A)
         {
             dialogue++;
             delay(100);
-        
-            switch (dialogue){
-                case 1:
-                    set_win_tiles(1,1,sophie1Width,sophie1Height, sophie1); 
-                    delay(500);
-                    SHOW_WIN;
-                    talking = 1;
+
+            switch (dialogue)
+            {
+            case 1:
+                set_win_tiles(1, 1, sophie1Width, sophie1Height, sophie1);
+                delay(500);
+                SHOW_WIN;
+                talking = 1;
                 break;
-                case 2:                    
-                    set_win_tiles(1,1,jenny1Width,jenny1Height, jenny1); 
-                    delay(500);
-                    talking = 1;
-                break;
-        
-                case 3:
-                    set_win_tiles(1,1,questionWidth,questionHeight,question);
-                    delay(500);
-                    talking =1;
+            case 2:
+                set_win_tiles(1, 1, jenny1Width, jenny1Height, jenny1);
+                delay(500);
+                talking = 1;
                 break;
 
-                case 4:
-                    set_win_tiles(1,1,ticketWidth,ticketHeight,ticket);
-                    delay(500);
-                    talking =1;
+            case 3:
+                set_win_tiles(1, 1, questionWidth, questionHeight, question);
+                delay(500);
+                talking = 1;
+                break;
+
+            case 4:
+                set_win_tiles(1, 1, ticketWidth, ticketHeight, ticket);
+                delay(500);
+                talking = 1;
 
                 break;
-                case 5:
-                    dialogue = 0;
-                    HIDE_WIN;
-                    talking = 0;
-                    haveticket = 1;
-                break; 
-                case 6: break;//this isnt used! 
+            case 5:
+                dialogue = 0;
+                HIDE_WIN;
+                talking = 0;
+                haveticket = 1;
+                break;
+            case 6:
+                break; //this isnt used!
             }
         }
-    } 
-    if (tileposX > (chrisPosX - 3) && tileposX < (chrisPosX + 3) && 
+    }
+    if (tileposX > (chrisPosX - 3) && tileposX < (chrisPosX + 3) &&
         tileposY > (chrisPosY - 3) && tileposY < (chrisPosY + 3))
     {
-        if(joypad() & J_A)
+        if (joypad() & J_A)
         {
             dialogue++;
             delay(100);
-        
-            switch (dialogue){
-                case 1:
-                if(haveticket==0){
-                    set_win_tiles(1,1,chris1Width,chris1Height, chris1); 
+
+            switch (dialogue)
+            {
+            case 1:
+                if (haveticket == 0)
+                {
+                    set_win_tiles(2, 1, chris1Width, chris1Height, chris1);
                     delay(500);
                     SHOW_WIN;
-                    talking = 1;}
-                if(haveticket==1){
-                    set_win_tiles(1,1,ticket2Width,ticket2Height,ticket2);
+                    talking = 1;
+                }
+                if (haveticket == 1)
+                {
+                    set_win_tiles(1, 1, ticket2Width, ticket2Height, ticket2);
                     delay(700);
                     SHOW_WIN;
-                    talking = 1;}
+                    talking = 1;
+                }
                 break;
-                case 2:  
-                
-                // if(haveticket=0){                  
+            case 2:
+
+                // if(haveticket=0){
                 //     dialogue = 0;
                 //     HIDE_WIN;
                 //     talking = 0;}
-                 if(haveticket==1){
-                    set_win_tiles(1,1,ancientevilWidth,ancientevilHeight,ancientevil);
+                if (haveticket == 1)
+                {
+                    set_win_tiles(1, 1, ancientevilWidth, ancientevilHeight, ancientevil);
                     delay(500);
                     SHOW_WIN;
-                    talking=1;
-
-                 }
+                    talking = 1;
+                }
                 break;
-        
-                case 3:
-                if(haveticket==1){
-                    set_win_tiles(1,1,garlandWidth,garlandHeight,garland);
+
+            case 3:
+                if (haveticket == 1)
+                {
+                    set_win_tiles(1, 1, garlandWidth, garlandHeight, garland);
                     delay(500);
                     SHOW_WIN;
-                    talking=1;
-                    garlandTalked =1;
+                    talking = 1;
+                    garlandTalked = 1;
+                }
 
-                 }
-                    
                 break;
-                case 4:
+            case 4:
                 dialogue = 0;
-                    HIDE_WIN;
-                    talking = 0;
-                break;
-                case 5: break;//this isnt used! 
-            
-            }
-        }
-    } 
-    if (tileposX > (keyPosX - 3) && tileposX < (keyPosX + 3) && 
-        tileposY > (keyPosY - 3) && tileposY < (keyPosY + 3)){
-            if (garlandTalked == 1 && havenockey == 0){
-                SHOW_WIN;
-                set_win_tiles(1,1,nocWidth,nocHeight,noc);
-                    delay(1000);
                 HIDE_WIN;
-                havenockey = 1;
-
-            }
-        }
-    if (tileposX > (doorPosX - 3) && tileposX < (doorPosX + 3) && 
-        tileposY > (doorPosY - 3) && tileposY < (doorPosY + 3)){
-            if (garlandTalked == 1 && havenockey == 1){
-                bossfight = 1;
-                x = 75;
-                y = 75;
-                havenockey = 0;
                 talking = 0;
-
+                break;
+            case 5:
+                break; //this isnt used!
             }
         }
+    }
+    if (tileposX > (keyPosX - 3) && tileposX < (keyPosX + 3) &&
+        tileposY > (keyPosY - 3) && tileposY < (keyPosY + 3))
+    {
+        if (garlandTalked == 1 && havenockey == 0)
+        {
+            SHOW_WIN;
+            set_win_tiles(1, 1, nocWidth, nocHeight, noc);
+            delay(1000);
+            HIDE_WIN;
+            havenockey = 1;
+        }
+    }
+    if (tileposX > (doorPosX - 3) && tileposX < (doorPosX + 3) &&
+        tileposY > (doorPosY - 3) && tileposY < (doorPosY + 3))
+    {
+        if (garlandTalked == 1 && havenockey == 1)
+        {
+            bossfight = 1;
+            x = 75;
+            y = 75;
+            havenockey = 0;
+            talking = 0;
+        }
+    }
 }
-void render_huge_sprite() {
-	
+void render_huge_sprite()
+{
 
-
-	set_bkg_tiles(12,9,5,8,vaporwave_tilemap);
-    set_bkg_tiles(3,4,14,1,bobaquest_tilemap);
-    set_bkg_tiles(5,7,12,1,starttext);
+    set_bkg_tiles(12, 9, 5, 8, vaporwave_tilemap);
+    set_bkg_tiles(3, 4, 14, 1, bobaquest_tilemap);
+    set_bkg_tiles(5, 7, 12, 1, starttext);
     HIDE_SPRITES;
-    if (joypad() & J_START){
+    if (joypad() & J_START)
+    {
         SHOW_SPRITES;
-        startedgame=1;
-        set_bkg_tiles(0,0,map_dataWidth, map_dataHeight, map_data);
+        startedgame = 1;
+        set_bkg_tiles(0, 0, map_dataWidth, map_dataHeight, map_data);
         set_sprite_data(0, 14, jenny); // load in character
         SPRITES_8x16;
-
-
     }
-	
 }
-void init(){
-        DISPLAY_ON;		// Turn on the display
-	    NR52_REG = 0x8F;	// Turn on the sound
-	    NR51_REG = 0x11;	// Enable the sound channels
-        NR50_REG = 0x77; // Increase the volume to its max
-        initrand(DIV_REG); //initialize random
+void init()
+{
+    DISPLAY_ON;        // Turn on the display
+    NR52_REG = 0x8F;   // Turn on the sound
+    NR51_REG = 0x11;   // Enable the sound channels
+    NR50_REG = 0x77;   // Increase the volume to its max
+    initrand(DIV_REG); //initialize random
 
-	
     SPRITES_8x8;
-    set_bkg_data(0xA8,15,boba_tiledata);
-    set_bkg_data(0x88,15,bobaquest_tiledata);
-    set_bkg_data(95,41,vaporwave_tiledata);
+    set_bkg_data(0xA8, 15, boba_tiledata);
+    set_bkg_data(0x88, 15, bobaquest_tiledata);
+    set_bkg_data(95, 41, vaporwave_tiledata);
     set_bkg_data(48, 47, alpha); //load in text data
-    set_bkg_data(0,47, tree);
+    set_bkg_data(0, 47, tree);
     set_sprite_data(14, 14, john);
-     set_sprite_data(0x1C,11,tickets);
-        set_sprite_tile(4,0x16);
-            set_sprite_tile(5,0x18);
-            set_sprite_tile(6,0x16);
-            set_sprite_tile(7,0x18);
-            set_sprite_tile(8,0x16);
-            set_sprite_tile(9,0x18);
-            set_sprite_tile(10,0x26);
-            set_sprite_tile(19,0x18);
-            set_sprite_tile(20,0x16);
-            
-    
-    //  set_bkg_tiles(0,4,10,2,noctext2); // load in text in noctext.c
+    set_sprite_data(0x1C, 11, tickets);
+    set_sprite_tile(4, 0x16);
+    set_sprite_tile(5, 0x18);
+    set_sprite_tile(6, 0x16);
+    set_sprite_tile(7, 0x18);
+    set_sprite_tile(8, 0x16);
+    set_sprite_tile(9, 0x18);
+    set_sprite_tile(10, 0x26);
+    set_sprite_tile(19, 0x18);
+    set_sprite_tile(20, 0x16);
 
+    //  set_bkg_tiles(0,4,10,2,noctext2); // load in text in noctext.c
 
     HIDE_WIN;
     set_win_data(152, 9, border);
     set_win_tiles(0, 0, 20, 4, window);
     move_win(7, 112);
     HIDE_WIN;
-    
 
-    set_bkg_tiles(0,0,20,18,blankScreen); // load in blank tiles
-    
+    set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
+
     SHOW_BKG;
-	SHOW_SPRITES;
-    
+    SHOW_SPRITES;
 }
 
 void SetAnimationFrame(int frame)
 {
-    switch(frame)
+    switch (frame)
     {
-        case 0:
-            set_sprite_tile(0, 0);
-            set_sprite_tile(1, 2); 
-            break;
-        case 1:
-            set_sprite_tile(0, 0);
-            set_sprite_tile(1, 6); 
-            break;
-        case 2:
-            set_sprite_tile(0, 0);
-	        set_sprite_tile(1, 2);
-            break;
-        case 3:
-            set_sprite_tile(0, 8);
-            set_sprite_tile(1, 10); 
-            break;
-        case 4: // HACK NOTE: this isnt used! 
-            break;
+    case 0:
+        set_sprite_tile(0, 0);
+        set_sprite_tile(1, 2);
+        break;
+    case 1:
+        set_sprite_tile(0, 0);
+        set_sprite_tile(1, 6);
+        break;
+    case 2:
+        set_sprite_tile(0, 0);
+        set_sprite_tile(1, 2);
+        break;
+    case 3:
+        set_sprite_tile(0, 8);
+        set_sprite_tile(1, 10);
+        break;
+    case 4: // HACK NOTE: this isnt used!
+        break;
     }
 }
 
-int inputX = 0; int inputY = 0; 
+int inputX = 0;
+int inputY = 0;
 // UINT8 nextX;
 // UINT8 nextY;
 int drawX;
 void updateCharacter()
 {
-    if(movedsprites==0){
-                move_sprite(3,0,0);
-                move_sprite(4,0,0);
-                move_sprite(5,0,0);
-                move_sprite(6,0,0);
-                move_sprite(7,0,0);
-                move_sprite(8,0,0);
-                move_sprite(9,0,0);
-                move_sprite(10,0,0);
-                move_sprite(11,0,0);
-                move_sprite(12,0,0);
-                move_sprite(13,0,0);
-                move_sprite(14,0,0);
-                move_sprite(20,0,0+8);
-     move_sprite(19,0+8,0+8);
-                movedsprites=1;
+    if (movedsprites == 0)
+    {
+        move_sprite(3, 0, 0);
+        move_sprite(4, 0, 0);
+        move_sprite(5, 0, 0);
+        move_sprite(6, 0, 0);
+        move_sprite(7, 0, 0);
+        move_sprite(8, 0, 0);
+        move_sprite(9, 0, 0);
+        move_sprite(10, 0, 0);
+        move_sprite(11, 0, 0);
+        move_sprite(12, 0, 0);
+        move_sprite(13, 0, 0);
+        move_sprite(14, 0, 0);
+        move_sprite(20, 0, 0 + 8);
+        move_sprite(19, 0 + 8, 0 + 8);
+        movedsprites = 1;
     }
     // Gather input
     inputX = inputY = 0;
-    
+
     isMoving = 0;
     if (joypad() & J_RIGHT)
     {
@@ -738,7 +755,7 @@ void updateCharacter()
 
     if (joypad() & J_SELECT)
     {
-          GotoBossFight(); // Debug purposes only
+        GotoBossFight(); // Debug purposes only
     }
     // if (joypad() & J_A){
 
@@ -754,7 +771,7 @@ void updateCharacter()
         if (framecounter >= 4)
         {
             framecounter = 0;
-            currentFrame ++;
+            currentFrame++;
 
             // x += inputX;
             // y += inputY;
@@ -766,8 +783,7 @@ void updateCharacter()
         currentFrame = 0;
     }
 
-    
-    SetAnimationFrame(currentFrame%4);
+    SetAnimationFrame(currentFrame % 4);
 
     // intergrate input
     // nextX = x+inputX;
@@ -775,16 +791,15 @@ void updateCharacter()
     // tileposX = nextX/8;
     // tileposY = nextY/8;
 
-    x = x+inputX;
-    y = y+inputY;
-    tileposX = x/8;
-    tileposY = y/8;
-
+    x = x + inputX;
+    y = y + inputY;
+    tileposX = x / 8;
+    tileposY = y / 8;
 
     if (collision(tileposX, tileposY) == 1)
     {
-        x = x-inputX;
-        y = y-inputY;
+        x = x - inputX;
+        y = y - inputY;
         isMoving = 0;
     }
 
@@ -796,8 +811,10 @@ void updateCharacter()
     if (y >= 146)
         y = 146;
 
-    if (x >= 75) drawX= 75;
-    else drawX = x;
+    if (x >= 75)
+        drawX = 75;
+    else
+        drawX = x;
 
     move_sprite(0, drawX, y);
     move_sprite(1, drawX + 8, y);
@@ -807,8 +824,8 @@ UINT8 collision(int x, int y)
 {
     // 46, 32, 8, 37
     int index = 0;
-    y-=1;
-    index = (y*map_dataWidth) + x;
+    y -= 1;
+    index = (y * map_dataWidth) + x;
     if (map_data[index] == 46 || map_data[index] == 32 || map_data[index] == 8 || map_data[index] == 37 || map_data[index] == 47)
     {
         return 0;
@@ -816,26 +833,23 @@ UINT8 collision(int x, int y)
     return 1;
 }
 
-int scrollX = 0;
-int tileCounter = 0;
-int counter = 0;
-int j;
+
 
 void updateBkg()
 {
     if (isMoving == 0)
         return;
     if (x < 75)
-    return;
+        return;
 
     if ((joypad() & J_LEFT) && (scrollX != 0))
     {
         scroll_bkg(-1, 0);
-        tileCounter --;
+        tileCounter--;
     }
     if ((joypad() & J_RIGHT) && (scrollX < map_dataWidth - 2))
     {
-        scroll_bkg(1,0);
+        scroll_bkg(1, 0);
         tileCounter++;
     }
 
@@ -853,9 +867,9 @@ void updateBkg()
     }
     if (tileCounter == -8)
     {
-        scrollX --;
+        scrollX--;
         tileCounter = 0;
-        counter = scrollX-1;
+        counter = scrollX - 1;
         j = counter % 32;
 
         for (i = 0; i < map_dataHeight; i++)
@@ -882,8 +896,7 @@ void updateBkg()
 
 void GotoBossFight()
 {
-    bossfight  = 1;
+    bossfight = 1;
     x = 75;
     y = 75;
-    
 }
