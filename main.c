@@ -1,100 +1,12 @@
 
-#include "Assets\alpha.c"
-#include "Assets\ancientevil.c"
-#include "Assets\blankscreen.c"
-#include "Assets\boba quest.h"
-// #include "Assets\boba.h"
-#include "Assets\border.c"
-#include "Assets\chrisdialogue.c"
-#include "Assets\congratulations.c"
-#include "Assets\garland.c"
-#include "Assets\healthbar.c"
-#include "Assets\healthbarmap.c"
-#include "Assets\jenny.c"
-#include "Assets\jennydialogue.c"
-#include "Assets\john.c"
-#include "Assets\map_data.c"
-#include "Assets\noc.c"
-#include "Assets\noctext2.c"
-#include "Assets\perish.c"
-#include "Assets\pressstart.c"
-#include "Assets\professorellis.h"
-#include "Assets\profintro.c"
-#include "Assets\profluck.c"
-#include "Assets\question.c"
-#include "Assets\sophiedialogue.c"
-#include "Assets\starmap.c"
-#include "Assets\starstiles.c"
-#include "Assets\ticket.c"
-#include "Assets\ticket2.c"
-#include "Assets\tickets.c"
-#include "Assets\trees2.c"
-#include "Assets\vaporwave.h"
-#include "Assets\window.c"
-#include "Assets\coin.c"
 #include <gb/gb.h>
 #include <rand.h>
-#include "frame0.h"
-#include "frame00.h"
-#include "frame01.h"
-#include "frame02.h"
-#include "frame03.h"
-
+#include "assets.h"
 /*
-MMMMMMMMMMMKkkl;;.       .;lKMMMMMMMMMMM
-MMMMMMMMKkl.                .;;;lkKMMMMM
-MMMMMKl;.                         .lKMMM
-MMKkl.                              lMMM
-MMMk.   ,:.  'c'                    .kMM
-MMMl   :xxo:'.;do:.                  lMM
-MMMl  'ddc:ldlloolc,..   .'  .,:;.   lMM
-MMMKklcdll,.;oxkxoc:c.   ,o'.c::d;   lMM
-MMMMMMXdodc..cxkkxxkko;';lo''o;,o,  ;KMM
-MMMMMklxxdddlldxkkkkkxdxkko,:dc:,   lMMM
-MMMMK,'dkkkkddxxkkkkkkkkkxcco:,.    lMMM
-MMMMKkookkkkkkkkxxxxkkkkxdo;.       lMMM
-MMMMMMNdokkkx:,,;odxkkkkdc;;,.      lMMM
-MMMMMMMKxkkxko;;lxkxdo:,,';ddc.     lMMM
-MMMMMMMMMMNXOxxool,..  .cc;c;.      lMMM
-MMMMMMMMMMMMMMOldo;;::c,:olo;      ;lkMM
-MMMMMMMMMMMNKkoll;;dkdlcodxkxl'    ;klkM
-MMMMMMMMMKkxdxxol:cdxoldkkkkkkxl;'  lKKM
-MMMMMMMMNdlooooooodxxdodkkkkkkkxxxc..kMM
-MMMMMMMk:looododxxkkkxoodkkkxdxxxko. ;KM
-MMMMMNkllxkdoxkkkkkkkxxxddxdoxkkkkx,  lM
-MMMMKookkkkkooxxkkkkkkkkkooxxkkkkkk;  .k
-MMMNl;xkkkkkoldxkkkkkkkkxooxxkkkkkk;   ,
-MMOoddkkkkkkdodkkkkkkkkkxooxdxkkkkk;    
-MKxdoooxkkkkkxdxkkkkkkkkkddkddkkkkk;    
-Kxxxddddoloodxkkkkkkkkxddl;,,okkkkk:    
-oxkkkkko;;ldoddoodddddddd:,;ldkkkkk:    
-00kdxkd;,oxkkxd:cddxkkkkxoooxkkkkkk;    
-MMNKXKl,;okkkocoxkkkkkkxdooxkkkkkkk;    
-MMMMMMk::ldddolodddddxxololoxkkkkkk;    
-MMMMMKkkxxxdddddddoodxxdloolc::;;,..    
-MMMMM0xkkkkkkkkkkkxxkkkkxxoo;           
-
-
-Holy include batman!
-A lot tilemaps for dialogue are saved in seperate files, there is probably a better way to handle than hard coding
-Tilemaps but for quick and easy way putting tiledata as const serves well without occupying too much memory
-###########################################################
+slack###########################################################
 ############### a lot of  defining ahead!! ################
 ###########################################################
 */
-#define MapSizeX 64
-#define SPR_HEIGHT 5
-#define SPR_WIDTH 8
-#define TOTAL_SPR SPR_WIDTH *SPR_HEIGHT
-#define chrisPosX 15
-#define chrisPosY 11
-#define doorPosX 34
-#define doorPosY 6
-#define keyPosX 45
-#define keyPosY 8
-#define sophiePosX 30
-#define sophiePosY 13
-
 // Simple X,Y coordinates of various objects on the map
 UBYTE johnTopX = 140;
 UBYTE johnBottomX = 148;
@@ -227,17 +139,17 @@ void main()
             if (introplayed == 1) // check if we already played Intro
             {
                 if (startedgame == 1 && spawned == 0) // check if we pressed start button but didn't spawn the character yet
-                { //opening spiel by prof. ellis
-                openingcutscene();
+                {                                     //opening spiel by prof. ellis
+                    openingcutscene();
                 }
                 if (credits == 1) // check if we won the game
-                { // end game screen
-                creditsrender();
+                {                 // end game screen
+                    creditsrender();
                 }
-                if (startedgame == 1) // check if we pressed start 
-                { // main game
+                if (startedgame == 1) // check if we pressed start
+                {                     // main game
                     wait_vbl_done();
-                    if (bossfight == 1)  // check if we started boss battle
+                    if (bossfight == 1) // check if we started boss battle
                     {
                         SPRITES_8x16;
                         enable_interrupts();
@@ -246,7 +158,7 @@ void main()
                         checkcollisions();
                     }
                     if (talking == 0 && bossfight == 0) // main moving map
-                    { // main graphics "renderer"
+                    {                                   // main graphics "renderer"
                         updateCharacter();
                         updateBkg();
                     }
