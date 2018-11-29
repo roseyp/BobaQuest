@@ -3,7 +3,7 @@
 #include "Assets\ancientevil.c"
 #include "Assets\blankscreen.c"
 #include "Assets\boba quest.h"
-#include "Assets\boba.h"
+// #include "Assets\boba.h"
 #include "Assets\border.c"
 #include "Assets\chrisdialogue.c"
 #include "Assets\congratulations.c"
@@ -34,14 +34,54 @@
 #include "Assets\coin.c"
 #include <gb/gb.h>
 #include <rand.h>
+#include "frame0.h"
+#include "frame00.h"
+#include "frame01.h"
+#include "frame02.h"
+#include "frame03.h"
 
-// holy include batman
-// a lot tilemaps for dialogue are saved in seperate files, there is probably a better way to handle than hard coding
-// tilemaps but for quick and easy way putting tiledata as const serves well without occupying too much memory
+/*
+MMMMMMMMMMMKkkl;;.       .;lKMMMMMMMMMMM
+MMMMMMMMKkl.                .;;;lkKMMMMM
+MMMMMKl;.                         .lKMMM
+MMKkl.                              lMMM
+MMMk.   ,:.  'c'                    .kMM
+MMMl   :xxo:'.;do:.                  lMM
+MMMl  'ddc:ldlloolc,..   .'  .,:;.   lMM
+MMMKklcdll,.;oxkxoc:c.   ,o'.c::d;   lMM
+MMMMMMXdodc..cxkkxxkko;';lo''o;,o,  ;KMM
+MMMMMklxxdddlldxkkkkkxdxkko,:dc:,   lMMM
+MMMMK,'dkkkkddxxkkkkkkkkkxcco:,.    lMMM
+MMMMKkookkkkkkkkxxxxkkkkxdo;.       lMMM
+MMMMMMNdokkkx:,,;odxkkkkdc;;,.      lMMM
+MMMMMMMKxkkxko;;lxkxdo:,,';ddc.     lMMM
+MMMMMMMMMMNXOxxool,..  .cc;c;.      lMMM
+MMMMMMMMMMMMMMOldo;;::c,:olo;      ;lkMM
+MMMMMMMMMMMNKkoll;;dkdlcodxkxl'    ;klkM
+MMMMMMMMMKkxdxxol:cdxoldkkkkkkxl;'  lKKM
+MMMMMMMMNdlooooooodxxdodkkkkkkkxxxc..kMM
+MMMMMMMk:looododxxkkkxoodkkkxdxxxko. ;KM
+MMMMMNkllxkdoxkkkkkkkxxxddxdoxkkkkx,  lM
+MMMMKookkkkkooxxkkkkkkkkkooxxkkkkkk;  .k
+MMMNl;xkkkkkoldxkkkkkkkkxooxxkkkkkk;   ,
+MMOoddkkkkkkdodkkkkkkkkkxooxdxkkkkk;    
+MKxdoooxkkkkkxdxkkkkkkkkkddkddkkkkk;    
+Kxxxddddoloodxkkkkkkkkxddl;,,okkkkk:    
+oxkkkkko;;ldoddoodddddddd:,;ldkkkkk:    
+00kdxkd;,oxkkxd:cddxkkkkxoooxkkkkkk;    
+MMNKXKl,;okkkocoxkkkkkkxdooxkkkkkkk;    
+MMMMMMk::ldddolodddddxxololoxkkkkkk;    
+MMMMMKkkxxxdddddddoodxxdloolc::;;,..    
+MMMMM0xkkkkkkkkkkkxxkkkkxxoo;           
 
-// ############### a lot of  defining ahead!! ################
 
-
+Holy include batman!
+A lot tilemaps for dialogue are saved in seperate files, there is probably a better way to handle than hard coding
+Tilemaps but for quick and easy way putting tiledata as const serves well without occupying too much memory
+###########################################################
+############### a lot of  defining ahead!! ################
+###########################################################
+*/
 #define MapSizeX 64
 #define SPR_HEIGHT 5
 #define SPR_WIDTH 8
@@ -54,15 +94,16 @@
 #define keyPosY 8
 #define sophiePosX 30
 #define sophiePosY 13
+
+// Simple X,Y coordinates of various objects on the map
 UBYTE johnTopX = 140;
 UBYTE johnBottomX = 148;
 UBYTE johnTopY = 75;
 UBYTE johnBottomY = 91;
-UBYTE spawned =0;
-
-
-
-
+UBYTE spawned = 0;
+BYTE introplayed = 0;
+BYTE moveBoss = 1;
+BYTE playsound = 6;
 UBYTE badguy2_x, badguy2_y, badguy2_z, badguy2_offset;
 UBYTE badguy_x, badguy_y, badguy_z, badguy_offset;
 UBYTE n = 0;
@@ -71,32 +112,40 @@ UINT8 collision(int x, int y);
 UINT8 randomBkgTiles[20];
 UINT8 sprite_index;
 
-int bossfight = 0;
+int bossfight = 0; // Has the boss fight started?
 int counter = 0;
-int credits = 0;
-int currentFrame;
-int dialogue = 0;
-int framecounter;
-int garlandTalked = 0;
-int havenockey = 0;
-int haveticket = 0;
+int credits = 0;       // Has player reached credits?
+int currentFrame;      // Frametime check
+int dialogue = 0;      // Is player in a dialogue?
+int framecounter;      // Count frames
+int garlandTalked = 0; // Has player talked to Chris about Garland?
+int havenockey = 0;    //Has the player unlocked boss fight?
+int haveticket = 0;    //Has the player talked to Sophie
 int i = 0;
-int isMoving = 0;
+int isMoving = 0; //Is player moving?
 int j;
 int jennytalked = 0;
 int l = 0;
-int loadedjohn = 0;
-int movedsprites = 1;
+int loadedjohn = 0;   //Init for boss
+int movedsprites = 1; //Clear sprites
 int scrollX = 0;
-int shotsfired = 0;
-int sophietalked = 0;
+int shotsfired = 0;   //Health of boss
+int sophietalked = 0; //Has Sophie displayed her dialogue?
 int startedgame = 0;
-int talking = 0;
+int talking = 0; //Is player talking?
 int tileCounter = 0;
 int tileposX = 0;
 int tileposY = 0;
-int x = 75;
-int y = 75;
+int x = 75; // Player X position
+int y = 75; // Player Y position
+int removesound = -1;
+int inputX = 0;
+int inputY = 0;
+// UINT8 nextX;
+// UINT8 nextY;
+int drawX;
+
+// linker not being very smart we've got to pre-define these
 void GotoBossFight();
 void checkcollisions();
 void checkinputboss();
@@ -107,6 +156,10 @@ void resetgame();
 void updateBkg();
 void updateCharacter();
 void updateboss();
+void playintro();
+void creditsrender();
+void openingcutscene();
+void memoryoffsettilemap();
 
 const UBYTE badguy_ai[] = {
     32, 32, 33, 34, 35, 35, 36, 37,
@@ -119,17 +172,17 @@ const UBYTE badguy_ai[] = {
     62, 63, 63, 63, 63, 63, 63, 63,
     63, 63, 63, 63, 63, 63, 63, 63,
     62, 62, 62, 62, 62, 61, 61, 61,
-    61, 60, 60, 60, 59, 59, 59, 58,
-    58, 57, 57, 56, 56, 55, 55, 54,
-    54, 53, 53, 52, 52, 51, 50, 50,
-    49, 49, 48, 47, 47, 46, 45, 44,
-    44, 43, 42, 42, 41, 40, 39, 39,
-    38, 37, 36, 36, 35, 34, 33, 33,
-    32, 31, 30, 29, 29, 28, 27, 26,
-    26, 25, 24, 23, 23, 22, 21, 20,
-    20, 19, 18, 18, 17, 16, 16, 15,
-    14, 14, 13, 12, 12, 11, 11, 10,
-    9, 9, 8, 8, 7, 7, 6, 6,
+    61, 60, 60, 60, 59, 59, 59, 58, //***                                ***
+    58, 57, 57, 56, 56, 55, 55, 54, //   ***                          ***
+    54, 53, 53, 52, 52, 51, 50, 50, //      **                      **
+    49, 49, 48, 47, 47, 46, 45, 44, //        *                    *
+    44, 43, 42, 42, 41, 40, 39, 39, //         *                  *
+    38, 37, 36, 36, 35, 34, 33, 33, //         *                  *
+    32, 31, 30, 29, 29, 28, 27, 26, //          *                *
+    26, 25, 24, 23, 23, 22, 21, 20, //           **            **
+    20, 19, 18, 18, 17, 16, 16, 15, //             ***      ***
+    14, 14, 13, 12, 12, 11, 11, 10, //                ******
+    9, 9, 8, 8, 7, 7, 6, 6,         //// Sine wave array
     6, 5, 5, 4, 4, 4, 3, 3,
     3, 2, 2, 2, 1, 1, 1, 1,
     1, 1, 0, 0, 0, 0, 0, 0,
@@ -140,13 +193,82 @@ const UBYTE badguy_ai[] = {
     9, 9, 10, 11, 11, 12, 12, 13,
     14, 14, 15, 16, 16, 17, 18, 18,
     19, 20, 20, 21, 22, 23, 23, 24,
-    25, 26, 26, 27, 28, 29, 29, 30}; // Sine wave woooo
+    25, 26, 26, 27, 28, 29, 29, 30};
 
-// ################ End of defining ###################
+/*
+
+
+ _____ _   _______   ___________  ______ ___________ _____ _   _ _____ _   _ _____ 
+|  ___| \ | |  _  \ |  _  |  ___| |  _  \  ___|  ___|_   _| \ | |_   _| \ | |  __ \
+| |__ |  \| | | | | | | | | |_    | | | | |__ | |_    | | |  \| | | | |  \| | |  \/
+|  __|| . ` | | | | | | | |  _|   | | | |  __||  _|   | | | . ` | | | | . ` | | __ 
+| |___| |\  | |/ /  \ \_/ / |     | |/ /| |___| |    _| |_| |\  |_| |_| |\  | |_\ \
+\____/\_| \_/___/    \___/\_|     |___/ \____/\_|    \___/\_| \_/\___/\_| \_/\____/
+                                                                                   
+                                                                                   
+
+
+*/
+
 void main()
 {
-    // Hacky hack - offsets tilemaps by amount needed in VRAM
+    /*
+###########################################################
+############### Moving tiles by offset in memory ##########
+###########################################################
+*/
     enable_interrupts();
+    memoryoffsettilemap();
+
+    // init();
+    while (1)
+    { // MAIN GAME LOOP
+        {
+            if (introplayed == 1) // check if we already played Intro
+            {
+                if (startedgame == 1 && spawned == 0) // check if we pressed start button but didn't spawn the character yet
+                { //opening spiel by prof. ellis
+                openingcutscene();
+                }
+                if (credits == 1) // check if we won the game
+                { // end game screen
+                creditsrender();
+                }
+                if (startedgame == 1) // check if we pressed start 
+                { // main game
+                    wait_vbl_done();
+                    if (bossfight == 1)  // check if we started boss battle
+                    {
+                        SPRITES_8x16;
+                        enable_interrupts();
+                        updateboss();
+                        checkinputboss();
+                        checkcollisions();
+                    }
+                    if (talking == 0 && bossfight == 0) // main moving map
+                    { // main graphics "renderer"
+                        updateCharacter();
+                        updateBkg();
+                    }
+
+                    displayDialogue(); // dialogue system
+                }
+
+                else
+                {
+                    render_huge_sprite(); // start screen
+                }
+            }
+            else
+            {
+                playintro();
+            }
+        }
+    }
+}
+
+void memoryoffsettilemap()
+{
     for (i = 0; i < 40; i++)
     {
         vaporwave_tilemap[i] += 0x5F;
@@ -167,84 +289,84 @@ void main()
     {
         jenny1[i] += 1;
     }
-    for (i = 0; i < 34; i++)
+    for (i = 0; i < 1; i++)
     {
-        // chris1[i] += 1;
+        chris1[i] - 1;
     }
-    for (i = 0; i < 19; i++)
+    // for (i = 0; i < 19; i++)
+    // {
+    //     boba_tilemap[i] += 0xA8;
+    // }
+    for (i = 0; i < 32; i++)
     {
-        boba_tilemap[i] += 0xA8;
-    }
-    for (i=0; i < 32; i++){
         professorellis_tilemap[i] += 0xBA;
     }
-    init();
-    while (1)
-    { // MAIN GAME LOOP
-        {
-        if (startedgame == 1 && spawned == 0){ //opening spiel by prof. ellis
-            talking = 1;
-             
-            // set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
-            set_bkg_tiles(12,8,5,8,professorellis_tilemap);
-            SHOW_WIN;
-            set_win_tiles(1, 1, profintroWidth, profintroHeight, profintro);
-            delay(4000);
-            set_win_tiles(1, 1, profintroWidth, profintroHeight, profluck);
-            delay(4000);
-            HIDE_WIN;
-            talking = 0;
-            set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
-            SHOW_SPRITES;
-            startedgame = 1;
-            set_bkg_tiles(0, 0, map_dataWidth, map_dataHeight, map_data);
-            set_sprite_data(0, 14, jenny); // load in character
-
-
-            spawned = 1;
-            
-
-        }
-        if (credits == 1)
-        { // end game screen
-            set_bkg_tiles(0, 0, 20, 18, congratulations);
-            set_bkg_tiles(0, 6, 3, 6, boba_tilemap);
-            HIDE_SPRITES;
-            HIDE_WIN;
-            delay(25000);
-            credits = 0;
-            resetgame();
-            shotsfired = 0;
-        }
-        if (startedgame == 1)
-        { // main game
-            wait_vbl_done();
-            if (bossfight == 1)
-            {
-                SPRITES_8x16;
-                enable_interrupts();
-                updateboss();
-                checkinputboss();
-                checkcollisions();
-            }
-            if (talking == 0 && bossfight == 0)
-            { // main graphics "renderer"
-                updateCharacter();
-                updateBkg();
-            }
-
-            displayDialogue(); // dialogue system
-        }
-        
-        else
-        {
-            render_huge_sprite(); // start screen
-        }
-        }
-    }
 }
-BYTE playsound = 6;
-int removesound = -1;
+void openingcutscene()
+{
+    talking = 1;
+
+    // set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
+    set_bkg_tiles(12, 8, 5, 8, professorellis_tilemap);
+    SHOW_WIN;
+    set_win_tiles(1, 1, profintroWidth, profintroHeight, profintro);
+    delay(2500);
+    set_win_tiles(1, 1, profintroWidth, profintroHeight, profluck);
+    delay(3000);
+    HIDE_WIN;
+    talking = 0;
+    set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
+    SHOW_SPRITES;
+    startedgame = 1;
+    set_bkg_tiles(0, 0, map_dataWidth, map_dataHeight, map_data);
+    set_sprite_data(0, 14, jenny); // load in character
+
+    spawned = 1;
+}
+
+void creditsrender()
+{
+    set_bkg_tiles(0, 0, 20, 18, congratulations);
+    // set_bkg_tiles(0, 6, 3, 6, boba_tilemap);
+    HIDE_SPRITES;
+    HIDE_WIN;
+    delay(25000);
+    credits = 0;
+    resetgame();
+    shotsfired = 0;
+}
+
+void playintro()
+{
+    //riot logo intro
+    DISPLAY_ON;      // Turn on the display
+    NR52_REG = 0x8F; // Turn on the sound
+    NR51_REG = 0x11; // Enable the sound channels
+    NR50_REG = 0x77;
+    SHOW_BKG;
+    set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
+    set_bkg_data(0, 26, frametiledata);
+    set_bkg_tiles(8, 6, 5, 5, frametilemap);
+    delay(600);
+
+    set_bkg_data(0, 37, frame01_tiledata);
+    set_bkg_tiles(7, 6, 6, 6, frame01_tilemap);
+    delay(500);
+
+    set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
+    set_bkg_data(0, 137, frame00_tiledata);
+    set_bkg_tiles(2, 4, 17, 8, frame00_tilemap);
+    delay(400);
+
+    set_bkg_tiles(0, 0, 20, 18, blankScreen); // load in blank tiles
+    set_bkg_data(0, 49, frame03_tiledata);
+    set_bkg_tiles(6, 6, 8, 6, frame03_tilemap);
+    delay(5000);
+    introplayed = 1;
+    HIDE_BKG;
+    init();
+}
+
 void checkcollisions()
 {
     if ((x > (badguy_x - 9) && x < (badguy_x + 9)) &&
@@ -276,11 +398,11 @@ void checkcollisions()
             NR51_REG = NR51_REG - 1;
             NR50_REG = NR50_REG - 1;
 
-            NR10_REG = NR10_REG - 1;
-            NR11_REG = NR11_REG - 1;
-            NR12_REG = NR12_REG - 1;
-            NR13_REG = NR13_REG - 1;
-            NR14_REG = NR14_REG - 1;
+            NR10_REG = NR10_REG - 10;
+            NR11_REG = NR11_REG - 10;
+            NR12_REG = NR12_REG - 10;
+            NR13_REG = NR13_REG - 10;
+            NR14_REG = NR14_REG - 10;
         }
         set_win_tiles(8 - shotsfired, 1, 1, 1, 0x2F); //0x2F
         player_shot_z = 0;
@@ -325,7 +447,6 @@ void checkcollisions()
     }
 }
 
-BYTE moveBoss = 1;
 void updateboss()
 {
     if (shotsfired == 6)
@@ -682,7 +803,7 @@ void init()
 
     SPRITES_8x8;
     set_bkg_data(0xBA, 41, professorellis_tiledata);
-    set_bkg_data(0xA8, 15, boba_tiledata);
+    // set_bkg_data(0xA8, 15, boba_tiledata);
     set_bkg_data(0x88, 15, bobaquest_tiledata);
     set_bkg_data(95, 41, vaporwave_tiledata);
     set_bkg_data(48, 47, alpha); //load in text data
@@ -738,11 +859,6 @@ void SetAnimationFrame(int frame)
     }
 }
 
-int inputX = 0;
-int inputY = 0;
-// UINT8 nextX;
-// UINT8 nextY;
-int drawX;
 void updateCharacter()
 {
     if (movedsprites == 0)
@@ -868,8 +984,6 @@ UINT8 collision(int x, int y)
     }
     return 1;
 }
-
-
 
 void updateBkg()
 {
