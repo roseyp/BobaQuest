@@ -4,12 +4,12 @@
   /* Modify these to change your theme colors: */
   --primary: #E06C75;
   --accent: #568AF2;
-  --text: #999;
+  --text: #AAAA94;
   --background: #27212E;
   --background-elevated: #568AF2;
   /* These should be less important: */
   --background-hover: #584B68;
-  --background-light: #AAA;
+  --background-light: #568AF2;
   --background-bright: #FFF;
   --border-dim: #666;
   --border-bright: var(--primary);
